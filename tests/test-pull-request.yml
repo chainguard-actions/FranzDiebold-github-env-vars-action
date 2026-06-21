@@ -1,0 +1,187 @@
+name: Test pull request scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/pull/42/merge
+      GITHUB_SHA: abcdef1234567890abcdef1234567890abcdef12
+      GITHUB_HEAD_REF: feat/feature-branch-1
+      GITHUB_BASE_REF: main
+      GITHUB_ACTOR: octocat
+      GITHUB_EVENT_NAME: pull_request
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+
+      - name: Assert CI_REPOSITORY is non-empty
+        run: |
+          echo "actual: $CI_REPOSITORY"
+          if [ -z "$CI_REPOSITORY" ]; then
+            echo "FAIL: expected CI_REPOSITORY to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY matches GITHUB_REPOSITORY
+        run: |
+          echo "CI_REPOSITORY: $CI_REPOSITORY"
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          if [ "$CI_REPOSITORY" != "$GITHUB_REPOSITORY" ]; then
+            echo "FAIL: expected CI_REPOSITORY='$GITHUB_REPOSITORY', got '$CI_REPOSITORY'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF matches GITHUB_REF
+        run: |
+          echo "CI_REF: $CI_REF"
+          echo "GITHUB_REF: $GITHUB_REF"
+          if [ "$CI_REF" != "$GITHUB_REF" ]; then
+            echo "FAIL: expected CI_REF='$GITHUB_REF', got '$CI_REF'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_SLUG is non-empty
+        run: |
+          echo "actual: $CI_REF_SLUG"
+          if [ -z "$CI_REF_SLUG" ]; then
+            echo "FAIL: expected CI_REF_SLUG to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME is non-empty
+        run: |
+          echo "actual: $CI_REF_NAME"
+          if [ -z "$CI_REF_NAME" ]; then
+            echo "FAIL: expected CI_REF_NAME to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME_SLUG is non-empty
+        run: |
+          echo "actual: $CI_REF_NAME_SLUG"
+          if [ -z "$CI_REF_NAME_SLUG" ]; then
+            echo "FAIL: expected CI_REF_NAME_SLUG to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_HEAD_REF matches GITHUB_HEAD_REF
+        run: |
+          echo "CI_HEAD_REF: $CI_HEAD_REF"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          if [ "$CI_HEAD_REF" != "$GITHUB_HEAD_REF" ]; then
+            echo "FAIL: expected CI_HEAD_REF='$GITHUB_HEAD_REF', got '$CI_HEAD_REF'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_HEAD_REF_SLUG is set when GITHUB_HEAD_REF is non-empty
+        run: |
+          echo "CI_HEAD_REF_SLUG: $CI_HEAD_REF_SLUG"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          if [ -n "$GITHUB_HEAD_REF" ] && [ -z "$CI_HEAD_REF_SLUG" ]; then
+            echo "FAIL: expected CI_HEAD_REF_SLUG to be non-empty when GITHUB_HEAD_REF is set"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_BASE_REF matches GITHUB_BASE_REF
+        run: |
+          echo "CI_BASE_REF: $CI_BASE_REF"
+          echo "GITHUB_BASE_REF: $GITHUB_BASE_REF"
+          if [ "$CI_BASE_REF" != "$GITHUB_BASE_REF" ]; then
+            echo "FAIL: expected CI_BASE_REF='$GITHUB_BASE_REF', got '$CI_BASE_REF'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_BASE_REF_SLUG is set when GITHUB_BASE_REF is non-empty
+        run: |
+          echo "CI_BASE_REF_SLUG: $CI_BASE_REF_SLUG"
+          echo "GITHUB_BASE_REF: $GITHUB_BASE_REF"
+          if [ -n "$GITHUB_BASE_REF" ] && [ -z "$CI_BASE_REF_SLUG" ]; then
+            echo "FAIL: expected CI_BASE_REF_SLUG to be non-empty when GITHUB_BASE_REF is set"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME is non-empty (PR uses HEAD_REF or refName)
+        run: |
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          if [ -z "$CI_ACTION_REF_NAME" ]; then
+            echo "FAIL: expected CI_ACTION_REF_NAME to be non-empty"
+            exit 1
+          fi
+          # CI_ACTION_REF_NAME should be GITHUB_HEAD_REF if set, otherwise CI_REF_NAME
+          if [ -n "$GITHUB_HEAD_REF" ]; then
+            if [ "$CI_ACTION_REF_NAME" != "$GITHUB_HEAD_REF" ]; then
+              echo "FAIL: expected CI_ACTION_REF_NAME='$GITHUB_HEAD_REF', got '$CI_ACTION_REF_NAME'"
+              exit 1
+            fi
+          else
+            if [ "$CI_ACTION_REF_NAME" != "$CI_REF_NAME" ]; then
+              echo "FAIL: expected CI_ACTION_REF_NAME='$CI_REF_NAME', got '$CI_ACTION_REF_NAME'"
+              exit 1
+            fi
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME_SLUG is non-empty
+        run: |
+          echo "actual: $CI_ACTION_REF_NAME_SLUG"
+          if [ -z "$CI_ACTION_REF_NAME_SLUG" ]; then
+            echo "FAIL: expected CI_ACTION_REF_NAME_SLUG to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA matches GITHUB_SHA
+        run: |
+          echo "CI_SHA: $CI_SHA"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          if [ "$CI_SHA" != "$GITHUB_SHA" ]; then
+            echo "FAIL: expected CI_SHA='$GITHUB_SHA', got '$CI_SHA'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA_SHORT is first 8 chars of CI_SHA
+        run: |
+          echo "CI_SHA: $CI_SHA"
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+          EXPECTED="${CI_SHA:0:8}"
+          echo "expected: $EXPECTED"
+          if [ "$CI_SHA_SHORT" != "$EXPECTED" ]; then
+            echo "FAIL: expected CI_SHA_SHORT='$EXPECTED', got '$CI_SHA_SHORT'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTOR matches GITHUB_ACTOR
+        run: |
+          echo "CI_ACTOR: $CI_ACTOR"
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
+          if [ "$CI_ACTOR" != "$GITHUB_ACTOR" ]; then
+            echo "FAIL: expected CI_ACTOR='$GITHUB_ACTOR', got '$CI_ACTOR'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_EVENT_NAME matches GITHUB_EVENT_NAME
+        run: |
+          echo "CI_EVENT_NAME: $CI_EVENT_NAME"
+          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          if [ "$CI_EVENT_NAME" != "$GITHUB_EVENT_NAME" ]; then
+            echo "FAIL: expected CI_EVENT_NAME='$GITHUB_EVENT_NAME', got '$CI_EVENT_NAME'"
+            exit 1
+          fi
+          echo "PASS"
