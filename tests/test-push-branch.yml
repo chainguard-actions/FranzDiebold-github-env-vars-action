@@ -1,0 +1,220 @@
+name: Test push branch scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/feat/feature-branch-1
+      GITHUB_SHA: ffac537e6cbbf934b08745a378932722df287a53
+      GITHUB_ACTOR: octocat
+      GITHUB_EVENT_NAME: push
+      GITHUB_RUN_ID: "397746731"
+      GITHUB_RUN_NUMBER: "73"
+      GITHUB_WORKFLOW: Demo
+      GITHUB_ACTION: run2
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        env:
+          GITHUB_REF: refs/heads/feat/feature-branch-1
+          GITHUB_SHA: ffac537e6cbbf934b08745a378932722df287a53
+          GITHUB_ACTOR: octocat
+          GITHUB_EVENT_NAME: push
+          GITHUB_RUN_ID: "397746731"
+          GITHUB_RUN_NUMBER: "73"
+          GITHUB_WORKFLOW: Demo
+          GITHUB_ACTION: run2
+
+      - name: Assert CI_REPOSITORY is set
+        run: |
+          echo "CI_REPOSITORY=$CI_REPOSITORY"
+          if [ -z "$CI_REPOSITORY" ]; then
+            echo "FAIL: CI_REPOSITORY is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_SLUG is set and non-empty
+        run: |
+          echo "CI_REPOSITORY_SLUG=$CI_REPOSITORY_SLUG"
+          if [ -z "$CI_REPOSITORY_SLUG" ]; then
+            echo "FAIL: CI_REPOSITORY_SLUG is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_OWNER is set
+        run: |
+          echo "CI_REPOSITORY_OWNER=$CI_REPOSITORY_OWNER"
+          if [ -z "$CI_REPOSITORY_OWNER" ]; then
+            echo "FAIL: CI_REPOSITORY_OWNER is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_OWNER_SLUG is set
+        run: |
+          echo "CI_REPOSITORY_OWNER_SLUG=$CI_REPOSITORY_OWNER_SLUG"
+          if [ -z "$CI_REPOSITORY_OWNER_SLUG" ]; then
+            echo "FAIL: CI_REPOSITORY_OWNER_SLUG is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_NAME is set
+        run: |
+          echo "CI_REPOSITORY_NAME=$CI_REPOSITORY_NAME"
+          if [ -z "$CI_REPOSITORY_NAME" ]; then
+            echo "FAIL: CI_REPOSITORY_NAME is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_NAME_SLUG is set
+        run: |
+          echo "CI_REPOSITORY_NAME_SLUG=$CI_REPOSITORY_NAME_SLUG"
+          if [ -z "$CI_REPOSITORY_NAME_SLUG" ]; then
+            echo "FAIL: CI_REPOSITORY_NAME_SLUG is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_SLUG is set and slug-formatted
+        run: |
+          echo "CI_REF_SLUG=$CI_REF_SLUG"
+          if [ -z "$CI_REF_SLUG" ]; then
+            echo "FAIL: CI_REF_SLUG is empty"
+            exit 1
+          fi
+          # Slug should only contain lowercase alphanumeric and dashes
+          if echo "$CI_REF_SLUG" | grep -qE '[^a-z0-9-]'; then
+            echo "FAIL: CI_REF_SLUG contains invalid characters: $CI_REF_SLUG"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME is set
+        run: |
+          echo "CI_REF_NAME=$CI_REF_NAME"
+          if [ -z "$CI_REF_NAME" ]; then
+            echo "FAIL: CI_REF_NAME is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME_SLUG is set and slug-formatted
+        run: |
+          echo "CI_REF_NAME_SLUG=$CI_REF_NAME_SLUG"
+          if [ -z "$CI_REF_NAME_SLUG" ]; then
+            echo "FAIL: CI_REF_NAME_SLUG is empty"
+            exit 1
+          fi
+          if echo "$CI_REF_NAME_SLUG" | grep -qE '[^a-z0-9-]'; then
+            echo "FAIL: CI_REF_NAME_SLUG contains invalid characters: $CI_REF_NAME_SLUG"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF is set
+        run: |
+          echo "CI_REF=$CI_REF"
+          if [ -z "$CI_REF" ]; then
+            echo "FAIL: CI_REF is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME is set
+        run: |
+          echo "CI_ACTION_REF_NAME=$CI_ACTION_REF_NAME"
+          if [ -z "$CI_ACTION_REF_NAME" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME_SLUG is set and slug-formatted
+        run: |
+          echo "CI_ACTION_REF_NAME_SLUG=$CI_ACTION_REF_NAME_SLUG"
+          if [ -z "$CI_ACTION_REF_NAME_SLUG" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG is empty"
+            exit 1
+          fi
+          if echo "$CI_ACTION_REF_NAME_SLUG" | grep -qE '[^a-z0-9-]'; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG contains invalid characters: $CI_ACTION_REF_NAME_SLUG"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA_SHORT is 8 hex characters
+        run: |
+          echo "CI_SHA_SHORT=$CI_SHA_SHORT"
+          if [ -z "$CI_SHA_SHORT" ]; then
+            echo "FAIL: CI_SHA_SHORT is empty"
+            exit 1
+          fi
+          if ! echo "$CI_SHA_SHORT" | grep -qE '^[0-9a-f]{8}$'; then
+            echo "FAIL: CI_SHA_SHORT is not 8 hex chars: $CI_SHA_SHORT"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA is set and 40 hex characters
+        run: |
+          echo "CI_SHA=$CI_SHA"
+          if [ -z "$CI_SHA" ]; then
+            echo "FAIL: CI_SHA is empty"
+            exit 1
+          fi
+          if ! echo "$CI_SHA" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "FAIL: CI_SHA is not 40 hex chars: $CI_SHA"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTOR is set
+        run: |
+          echo "CI_ACTOR=$CI_ACTOR"
+          if [ -z "$CI_ACTOR" ]; then
+            echo "FAIL: CI_ACTOR is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_EVENT_NAME is set
+        run: |
+          echo "CI_EVENT_NAME=$CI_EVENT_NAME"
+          if [ -z "$CI_EVENT_NAME" ]; then
+            echo "FAIL: CI_EVENT_NAME is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_RUN_ID is set
+        run: |
+          echo "CI_RUN_ID=$CI_RUN_ID"
+          if [ -z "$CI_RUN_ID" ]; then
+            echo "FAIL: CI_RUN_ID is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_RUN_NUMBER is set
+        run: |
+          echo "CI_RUN_NUMBER=$CI_RUN_NUMBER"
+          if [ -z "$CI_RUN_NUMBER" ]; then
+            echo "FAIL: CI_RUN_NUMBER is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_WORKFLOW is set
+        run: |
+          echo "CI_WORKFLOW=$CI_WORKFLOW"
+          if [ -z "$CI_WORKFLOW" ]; then
+            echo "FAIL: CI_WORKFLOW is empty"
+            exit 1
+          fi
+          echo "PASS"
