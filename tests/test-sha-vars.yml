@@ -1,0 +1,64 @@
+name: Test SHA environment variables
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+
+      - name: Debug SHA vars
+        run: |
+          echo "=== GITHUB vars ==="
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "=== CI vars ==="
+          echo "CI_SHA: $CI_SHA"
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+
+      - name: Assert CI_SHA matches GITHUB_SHA
+        run: |
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "CI_SHA: $CI_SHA"
+          if [ -z "$GITHUB_SHA" ]; then
+            echo "SKIP: GITHUB_SHA is not set"
+            exit 0
+          fi
+          if [ "$CI_SHA" != "$GITHUB_SHA" ]; then
+            echo "FAIL: expected CI_SHA='$GITHUB_SHA', got '$CI_SHA'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA_SHORT is first 8 characters of GITHUB_SHA
+        run: |
+          EXPECTED_SHORT="$(echo "$GITHUB_SHA" | cut -c1-8)"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "Expected short: $EXPECTED_SHORT"
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+          if [ -z "$GITHUB_SHA" ]; then
+            echo "SKIP: GITHUB_SHA is not set"
+            exit 0
+          fi
+          if [ "$CI_SHA_SHORT" != "$EXPECTED_SHORT" ]; then
+            echo "FAIL: expected '$EXPECTED_SHORT', got '$CI_SHA_SHORT'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA_SHORT is exactly 8 characters
+        run: |
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+          if [ -z "$CI_SHA_SHORT" ]; then
+            echo "SKIP: CI_SHA_SHORT is not set (GITHUB_SHA may not be available)"
+            exit 0
+          fi
+          LENGTH=${#CI_SHA_SHORT}
+          echo "length: $LENGTH"
+          if [ "$LENGTH" != "8" ]; then
+            echo "FAIL: expected length 8, got $LENGTH"
+            exit 1
+          fi
+          echo "PASS"

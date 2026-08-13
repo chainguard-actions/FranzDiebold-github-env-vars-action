@@ -1,0 +1,109 @@
+name: Test run metadata environment variables
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+
+      - name: Debug run metadata vars
+        run: |
+          echo "=== GITHUB vars ==="
+          echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
+          echo "GITHUB_RUN_NUMBER: $GITHUB_RUN_NUMBER"
+          echo "GITHUB_WORKFLOW: $GITHUB_WORKFLOW"
+          echo "GITHUB_ACTION: $GITHUB_ACTION"
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
+          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          echo "=== CI vars ==="
+          echo "CI_RUN_ID: $CI_RUN_ID"
+          echo "CI_RUN_NUMBER: $CI_RUN_NUMBER"
+          echo "CI_WORKFLOW: $CI_WORKFLOW"
+          echo "CI_ACTION: $CI_ACTION"
+          echo "CI_ACTOR: $CI_ACTOR"
+          echo "CI_EVENT_NAME: $CI_EVENT_NAME"
+
+      - name: Assert CI_RUN_ID matches GITHUB_RUN_ID
+        run: |
+          echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
+          echo "CI_RUN_ID: $CI_RUN_ID"
+          if [ -z "$GITHUB_RUN_ID" ]; then
+            echo "SKIP: GITHUB_RUN_ID is not set"
+            exit 0
+          fi
+          if [ "$CI_RUN_ID" != "$GITHUB_RUN_ID" ]; then
+            echo "FAIL: expected CI_RUN_ID='$GITHUB_RUN_ID', got '$CI_RUN_ID'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_RUN_NUMBER matches GITHUB_RUN_NUMBER
+        run: |
+          echo "GITHUB_RUN_NUMBER: $GITHUB_RUN_NUMBER"
+          echo "CI_RUN_NUMBER: $CI_RUN_NUMBER"
+          if [ -z "$GITHUB_RUN_NUMBER" ]; then
+            echo "SKIP: GITHUB_RUN_NUMBER is not set"
+            exit 0
+          fi
+          if [ "$CI_RUN_NUMBER" != "$GITHUB_RUN_NUMBER" ]; then
+            echo "FAIL: expected CI_RUN_NUMBER='$GITHUB_RUN_NUMBER', got '$CI_RUN_NUMBER'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_WORKFLOW matches GITHUB_WORKFLOW
+        run: |
+          echo "GITHUB_WORKFLOW: $GITHUB_WORKFLOW"
+          echo "CI_WORKFLOW: $CI_WORKFLOW"
+          if [ -z "$GITHUB_WORKFLOW" ]; then
+            echo "SKIP: GITHUB_WORKFLOW is not set"
+            exit 0
+          fi
+          if [ "$CI_WORKFLOW" != "$GITHUB_WORKFLOW" ]; then
+            echo "FAIL: expected CI_WORKFLOW='$GITHUB_WORKFLOW', got '$CI_WORKFLOW'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION is set (non-empty)
+        # Note: GITHUB_ACTION changes between steps (it reflects the current step's action),
+        # so we only verify CI_ACTION was captured and is non-empty.
+        run: |
+          echo "CI_ACTION: $CI_ACTION"
+          if [ -z "$CI_ACTION" ]; then
+            echo "FAIL: CI_ACTION is empty"
+            exit 1
+          fi
+          echo "PASS: CI_ACTION='$CI_ACTION'"
+
+      - name: Assert CI_ACTOR matches GITHUB_ACTOR
+        run: |
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
+          echo "CI_ACTOR: $CI_ACTOR"
+          if [ -z "$GITHUB_ACTOR" ]; then
+            echo "SKIP: GITHUB_ACTOR is not set"
+            exit 0
+          fi
+          if [ "$CI_ACTOR" != "$GITHUB_ACTOR" ]; then
+            echo "FAIL: expected CI_ACTOR='$GITHUB_ACTOR', got '$CI_ACTOR'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_EVENT_NAME matches GITHUB_EVENT_NAME
+        run: |
+          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          echo "CI_EVENT_NAME: $CI_EVENT_NAME"
+          if [ -z "$GITHUB_EVENT_NAME" ]; then
+            echo "SKIP: GITHUB_EVENT_NAME is not set"
+            exit 0
+          fi
+          if [ "$CI_EVENT_NAME" != "$GITHUB_EVENT_NAME" ]; then
+            echo "FAIL: expected CI_EVENT_NAME='$GITHUB_EVENT_NAME', got '$CI_EVENT_NAME'"
+            exit 1
+          fi
+          echo "PASS"

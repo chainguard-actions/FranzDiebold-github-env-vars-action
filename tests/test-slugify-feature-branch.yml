@@ -1,0 +1,174 @@
+name: Test slugify with feature branch
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+
+      - name: Debug slugify vars
+        run: |
+          echo "=== GITHUB vars ==="
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          echo "=== CI vars ==="
+          echo "CI_REF: $CI_REF"
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          echo "CI_REF_SLUG: $CI_REF_SLUG"
+          echo "CI_REF_NAME_SLUG: $CI_REF_NAME_SLUG"
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          echo "CI_ACTION_REF_NAME_SLUG: $CI_ACTION_REF_NAME_SLUG"
+          echo "CI_REPOSITORY_SLUG: $CI_REPOSITORY_SLUG"
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+
+      - name: Assert CI_REF_SLUG is set and is a valid slug (lowercase, no slashes)
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "CI_REF_SLUG: $CI_REF_SLUG"
+          if [ -z "$GITHUB_REF" ]; then
+            echo "SKIP: GITHUB_REF is not set"
+            exit 0
+          fi
+          if [ -z "$CI_REF_SLUG" ]; then
+            echo "FAIL: CI_REF_SLUG is empty"
+            exit 1
+          fi
+          # Slug must be lowercase
+          LOWER="$(echo "$CI_REF_SLUG" | tr '[:upper:]' '[:lower:]')"
+          if [ "$CI_REF_SLUG" != "$LOWER" ]; then
+            echo "FAIL: CI_REF_SLUG '$CI_REF_SLUG' is not lowercase"
+            exit 1
+          fi
+          # Slug must not contain slashes
+          if echo "$CI_REF_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_REF_SLUG '$CI_REF_SLUG' contains slashes"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME is set and non-empty (when GITHUB_REF is set)
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          if [ -z "$GITHUB_REF" ]; then
+            echo "SKIP: GITHUB_REF is not set"
+            exit 0
+          fi
+          if [ -z "$CI_REF_NAME" ]; then
+            echo "FAIL: CI_REF_NAME is empty but GITHUB_REF='$GITHUB_REF'"
+            exit 1
+          fi
+          # CI_REF_NAME should be the part after refs/<type>/ (e.g. refs/heads/ or refs/tags/)
+          # Use the same logic as the action: split('/').slice(2).join('/')
+          EXPECTED="$(echo "$GITHUB_REF" | cut -d'/' -f3-)"
+          echo "Expected (from cut): $EXPECTED"
+          if [ -n "$EXPECTED" ] && [ "$CI_REF_NAME" != "$EXPECTED" ]; then
+            echo "FAIL: expected '$EXPECTED', got '$CI_REF_NAME'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME_SLUG is set and is a valid slug (no slashes, lowercase)
+        run: |
+          echo "CI_REF_NAME_SLUG: $CI_REF_NAME_SLUG"
+          if [ -z "$GITHUB_REF" ]; then
+            echo "SKIP: GITHUB_REF is not set"
+            exit 0
+          fi
+          if [ -z "$CI_REF_NAME_SLUG" ]; then
+            echo "FAIL: CI_REF_NAME_SLUG is empty"
+            exit 1
+          fi
+          # Slug must be lowercase
+          LOWER="$(echo "$CI_REF_NAME_SLUG" | tr '[:upper:]' '[:lower:]')"
+          if [ "$CI_REF_NAME_SLUG" != "$LOWER" ]; then
+            echo "FAIL: CI_REF_NAME_SLUG '$CI_REF_NAME_SLUG' is not lowercase"
+            exit 1
+          fi
+          # Slug must not contain slashes
+          if echo "$CI_REF_NAME_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_REF_NAME_SLUG '$CI_REF_NAME_SLUG' contains slashes"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME is set and non-empty
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          if [ -z "$GITHUB_REF" ] && [ -z "$GITHUB_HEAD_REF" ]; then
+            echo "SKIP: neither GITHUB_REF nor GITHUB_HEAD_REF is set"
+            exit 0
+          fi
+          if [ -z "$CI_ACTION_REF_NAME" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME_SLUG is set and is a valid slug
+        run: |
+          echo "CI_ACTION_REF_NAME_SLUG: $CI_ACTION_REF_NAME_SLUG"
+          if [ -z "$CI_ACTION_REF_NAME" ]; then
+            echo "SKIP: CI_ACTION_REF_NAME is not set"
+            exit 0
+          fi
+          if [ -z "$CI_ACTION_REF_NAME_SLUG" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG is empty"
+            exit 1
+          fi
+          # Slug must be lowercase
+          LOWER="$(echo "$CI_ACTION_REF_NAME_SLUG" | tr '[:upper:]' '[:lower:]')"
+          if [ "$CI_ACTION_REF_NAME_SLUG" != "$LOWER" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG '$CI_ACTION_REF_NAME_SLUG' is not lowercase"
+            exit 1
+          fi
+          # Slug must not contain slashes
+          if echo "$CI_ACTION_REF_NAME_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG '$CI_ACTION_REF_NAME_SLUG' contains slashes"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_SLUG is set and is a valid slug
+        run: |
+          echo "CI_REPOSITORY_SLUG: $CI_REPOSITORY_SLUG"
+          if [ -z "$CI_REPOSITORY_SLUG" ]; then
+            echo "FAIL: CI_REPOSITORY_SLUG is empty"
+            exit 1
+          fi
+          # Slug must be lowercase
+          LOWER="$(echo "$CI_REPOSITORY_SLUG" | tr '[:upper:]' '[:lower:]')"
+          if [ "$CI_REPOSITORY_SLUG" != "$LOWER" ]; then
+            echo "FAIL: CI_REPOSITORY_SLUG '$CI_REPOSITORY_SLUG' is not lowercase"
+            exit 1
+          fi
+          # Slug must not contain slashes
+          if echo "$CI_REPOSITORY_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_REPOSITORY_SLUG '$CI_REPOSITORY_SLUG' contains slashes"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_SHA_SHORT is first 8 chars of GITHUB_SHA
+        run: |
+          EXPECTED_SHORT="$(echo "$GITHUB_SHA" | cut -c1-8)"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "Expected short: $EXPECTED_SHORT"
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+          if [ -z "$GITHUB_SHA" ]; then
+            echo "SKIP: GITHUB_SHA is not set"
+            exit 0
+          fi
+          if [ "$CI_SHA_SHORT" != "$EXPECTED_SHORT" ]; then
+            echo "FAIL: expected '$EXPECTED_SHORT', got '$CI_SHA_SHORT'"
+            exit 1
+          fi
+          echo "PASS"

@@ -1,0 +1,197 @@
+name: Test basic push scenario
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+
+      - name: Debug all CI and GITHUB vars
+        run: |
+          echo "=== GITHUB vars ==="
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
+          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          echo "=== CI vars ==="
+          echo "CI_REPOSITORY: $CI_REPOSITORY"
+          echo "CI_REPOSITORY_OWNER: $CI_REPOSITORY_OWNER"
+          echo "CI_REPOSITORY_NAME: $CI_REPOSITORY_NAME"
+          echo "CI_REPOSITORY_SLUG: $CI_REPOSITORY_SLUG"
+          echo "CI_REF: $CI_REF"
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          echo "CI_REF_SLUG: $CI_REF_SLUG"
+          echo "CI_ACTOR: $CI_ACTOR"
+          echo "CI_EVENT_NAME: $CI_EVENT_NAME"
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          echo "CI_ACTION_REF_NAME_SLUG: $CI_ACTION_REF_NAME_SLUG"
+
+      - name: Assert CI_REPOSITORY matches GITHUB_REPOSITORY
+        run: |
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          echo "CI_REPOSITORY: $CI_REPOSITORY"
+          if [ -z "$GITHUB_REPOSITORY" ]; then
+            echo "SKIP: GITHUB_REPOSITORY is not set"
+            exit 0
+          fi
+          if [ "$CI_REPOSITORY" != "$GITHUB_REPOSITORY" ]; then
+            echo "FAIL: expected CI_REPOSITORY='$GITHUB_REPOSITORY', got '$CI_REPOSITORY'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_OWNER is the owner part of GITHUB_REPOSITORY
+        run: |
+          EXPECTED_OWNER="$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f1)"
+          echo "Expected owner: $EXPECTED_OWNER"
+          echo "CI_REPOSITORY_OWNER: $CI_REPOSITORY_OWNER"
+          if [ -z "$EXPECTED_OWNER" ]; then
+            echo "SKIP: GITHUB_REPOSITORY is not set"
+            exit 0
+          fi
+          if [ "$CI_REPOSITORY_OWNER" != "$EXPECTED_OWNER" ]; then
+            echo "FAIL: expected '$EXPECTED_OWNER', got '$CI_REPOSITORY_OWNER'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_NAME is the name part of GITHUB_REPOSITORY
+        run: |
+          EXPECTED_NAME="$(echo "$GITHUB_REPOSITORY" | cut -d'/' -f2)"
+          echo "Expected name: $EXPECTED_NAME"
+          echo "CI_REPOSITORY_NAME: $CI_REPOSITORY_NAME"
+          if [ -z "$EXPECTED_NAME" ]; then
+            echo "SKIP: GITHUB_REPOSITORY is not set"
+            exit 0
+          fi
+          if [ "$CI_REPOSITORY_NAME" != "$EXPECTED_NAME" ]; then
+            echo "FAIL: expected '$EXPECTED_NAME', got '$CI_REPOSITORY_NAME'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REPOSITORY_SLUG is set and is a valid slug (no slashes)
+        run: |
+          echo "CI_REPOSITORY_SLUG: $CI_REPOSITORY_SLUG"
+          if [ -z "$CI_REPOSITORY_SLUG" ]; then
+            echo "FAIL: CI_REPOSITORY_SLUG is empty"
+            exit 1
+          fi
+          if echo "$CI_REPOSITORY_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_REPOSITORY_SLUG contains slashes"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTOR matches GITHUB_ACTOR
+        run: |
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
+          echo "CI_ACTOR: $CI_ACTOR"
+          if [ -z "$GITHUB_ACTOR" ]; then
+            echo "SKIP: GITHUB_ACTOR is not set"
+            exit 0
+          fi
+          if [ "$CI_ACTOR" != "$GITHUB_ACTOR" ]; then
+            echo "FAIL: expected CI_ACTOR='$GITHUB_ACTOR', got '$CI_ACTOR'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_EVENT_NAME matches GITHUB_EVENT_NAME
+        run: |
+          echo "GITHUB_EVENT_NAME: $GITHUB_EVENT_NAME"
+          echo "CI_EVENT_NAME: $CI_EVENT_NAME"
+          if [ -z "$GITHUB_EVENT_NAME" ]; then
+            echo "SKIP: GITHUB_EVENT_NAME is not set"
+            exit 0
+          fi
+          if [ "$CI_EVENT_NAME" != "$GITHUB_EVENT_NAME" ]; then
+            echo "FAIL: expected CI_EVENT_NAME='$GITHUB_EVENT_NAME', got '$CI_EVENT_NAME'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF is set (non-empty)
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "CI_REF: $CI_REF"
+          if [ -z "$GITHUB_REF" ]; then
+            echo "SKIP: GITHUB_REF is not set, skipping CI_REF check"
+            exit 0
+          fi
+          if [ "$CI_REF" != "$GITHUB_REF" ]; then
+            echo "FAIL: expected CI_REF='$GITHUB_REF', got '$CI_REF'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_NAME is set and non-empty (when GITHUB_REF is set)
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          if [ -z "$GITHUB_REF" ]; then
+            echo "SKIP: GITHUB_REF is not set"
+            exit 0
+          fi
+          if [ -z "$CI_REF_NAME" ]; then
+            echo "FAIL: CI_REF_NAME is empty but GITHUB_REF='$GITHUB_REF'"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_REF_SLUG is set and is a valid slug (no slashes, when GITHUB_REF is set)
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "CI_REF_SLUG: $CI_REF_SLUG"
+          if [ -z "$GITHUB_REF" ]; then
+            echo "SKIP: GITHUB_REF is not set"
+            exit 0
+          fi
+          if [ -z "$CI_REF_SLUG" ]; then
+            echo "FAIL: CI_REF_SLUG is empty but GITHUB_REF='$GITHUB_REF'"
+            exit 1
+          fi
+          if echo "$CI_REF_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_REF_SLUG contains slashes"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME is set and non-empty (when GITHUB_REF or GITHUB_HEAD_REF is set)
+        run: |
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          if [ -z "$GITHUB_REF" ] && [ -z "$GITHUB_HEAD_REF" ]; then
+            echo "SKIP: neither GITHUB_REF nor GITHUB_HEAD_REF is set"
+            exit 0
+          fi
+          if [ -z "$CI_ACTION_REF_NAME" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME is empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert CI_ACTION_REF_NAME_SLUG is set and is a valid slug (when CI_ACTION_REF_NAME is set)
+        run: |
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          echo "CI_ACTION_REF_NAME_SLUG: $CI_ACTION_REF_NAME_SLUG"
+          if [ -z "$CI_ACTION_REF_NAME" ]; then
+            echo "SKIP: CI_ACTION_REF_NAME is not set"
+            exit 0
+          fi
+          if [ -z "$CI_ACTION_REF_NAME_SLUG" ]; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG is empty"
+            exit 1
+          fi
+          if echo "$CI_ACTION_REF_NAME_SLUG" | grep -q '/'; then
+            echo "FAIL: CI_ACTION_REF_NAME_SLUG contains slashes"
+            exit 1
+          fi
+          echo "PASS"
