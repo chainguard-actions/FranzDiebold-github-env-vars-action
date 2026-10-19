@@ -1,0 +1,76 @@
+name: Test repository environment variables
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        env:
+          GITHUB_REF: refs/heads/main
+          GITHUB_EVENT_NAME: push
+      - name: Assert CI_REPOSITORY is set (from sentinel GITHUB_REPOSITORY)
+        run: |
+          echo "CI_REPOSITORY: $CI_REPOSITORY"
+          if [ -z "$CI_REPOSITORY" ]; then
+            echo "FAIL: expected CI_REPOSITORY to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REPOSITORY=$CI_REPOSITORY"
+      - name: Assert CI_REPOSITORY_OWNER is set
+        run: |
+          echo "CI_REPOSITORY_OWNER: $CI_REPOSITORY_OWNER"
+          if [ -z "$CI_REPOSITORY_OWNER" ]; then
+            echo "FAIL: expected CI_REPOSITORY_OWNER to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REPOSITORY_OWNER=$CI_REPOSITORY_OWNER"
+      - name: Assert CI_REPOSITORY_OWNER_SLUG is set and lowercase
+        run: |
+          echo "CI_REPOSITORY_OWNER_SLUG: $CI_REPOSITORY_OWNER_SLUG"
+          if [ -z "$CI_REPOSITORY_OWNER_SLUG" ]; then
+            echo "FAIL: expected CI_REPOSITORY_OWNER_SLUG to be non-empty"
+            exit 1
+          fi
+          # Slug should be lowercase and contain only alphanumeric and dashes
+          if echo "$CI_REPOSITORY_OWNER_SLUG" | grep -qP '[^a-z0-9-]'; then
+            echo "FAIL: CI_REPOSITORY_OWNER_SLUG contains invalid chars: '$CI_REPOSITORY_OWNER_SLUG'"
+            exit 1
+          fi
+          echo "PASS: CI_REPOSITORY_OWNER_SLUG=$CI_REPOSITORY_OWNER_SLUG"
+      - name: Assert CI_REPOSITORY_NAME is set
+        run: |
+          echo "CI_REPOSITORY_NAME: $CI_REPOSITORY_NAME"
+          if [ -z "$CI_REPOSITORY_NAME" ]; then
+            echo "FAIL: expected CI_REPOSITORY_NAME to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REPOSITORY_NAME=$CI_REPOSITORY_NAME"
+      - name: Assert CI_REPOSITORY_NAME_SLUG is set and lowercase
+        run: |
+          echo "CI_REPOSITORY_NAME_SLUG: $CI_REPOSITORY_NAME_SLUG"
+          if [ -z "$CI_REPOSITORY_NAME_SLUG" ]; then
+            echo "FAIL: expected CI_REPOSITORY_NAME_SLUG to be non-empty"
+            exit 1
+          fi
+          # Slug should be lowercase and contain only alphanumeric and dashes
+          if echo "$CI_REPOSITORY_NAME_SLUG" | grep -qP '[^a-z0-9-]'; then
+            echo "FAIL: CI_REPOSITORY_NAME_SLUG contains invalid chars: '$CI_REPOSITORY_NAME_SLUG'"
+            exit 1
+          fi
+          echo "PASS: CI_REPOSITORY_NAME_SLUG=$CI_REPOSITORY_NAME_SLUG"
+      - name: Assert CI_REPOSITORY_SLUG is set and lowercase
+        run: |
+          echo "CI_REPOSITORY_SLUG: $CI_REPOSITORY_SLUG"
+          if [ -z "$CI_REPOSITORY_SLUG" ]; then
+            echo "FAIL: expected CI_REPOSITORY_SLUG to be non-empty"
+            exit 1
+          fi
+          # Slug should be lowercase and contain only alphanumeric and dashes
+          if echo "$CI_REPOSITORY_SLUG" | grep -qP '[^a-z0-9-]'; then
+            echo "FAIL: CI_REPOSITORY_SLUG contains invalid chars: '$CI_REPOSITORY_SLUG'"
+            exit 1
+          fi
+          echo "PASS: CI_REPOSITORY_SLUG=$CI_REPOSITORY_SLUG"

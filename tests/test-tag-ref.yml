@@ -1,0 +1,67 @@
+name: Test tag ref environment variables
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+      - name: Assert CI_REF is set and non-empty
+        run: |
+          echo "CI_REF: $CI_REF"
+          if [ -z "$CI_REF" ]; then
+            echo "FAIL: expected CI_REF to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REF=$CI_REF"
+      - name: Assert CI_REF_NAME is set and non-empty
+        run: |
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          if [ -z "$CI_REF_NAME" ]; then
+            echo "FAIL: expected CI_REF_NAME to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REF_NAME=$CI_REF_NAME"
+      - name: Assert CI_REF_NAME_SLUG is set and non-empty
+        run: |
+          echo "CI_REF_NAME_SLUG: $CI_REF_NAME_SLUG"
+          if [ -z "$CI_REF_NAME_SLUG" ]; then
+            echo "FAIL: expected CI_REF_NAME_SLUG to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REF_NAME_SLUG=$CI_REF_NAME_SLUG"
+      - name: Assert CI_REF_SLUG is set and non-empty
+        run: |
+          echo "CI_REF_SLUG: $CI_REF_SLUG"
+          if [ -z "$CI_REF_SLUG" ]; then
+            echo "FAIL: expected CI_REF_SLUG to be non-empty"
+            exit 1
+          fi
+          echo "PASS: CI_REF_SLUG=$CI_REF_SLUG"
+      - name: Assert CI_ACTION_REF_NAME matches CI_REF_NAME
+        run: |
+          echo "CI_ACTION_REF_NAME: $CI_ACTION_REF_NAME"
+          echo "CI_REF_NAME: $CI_REF_NAME"
+          if [ "$CI_ACTION_REF_NAME" != "$CI_REF_NAME" ]; then
+            echo "FAIL: expected CI_ACTION_REF_NAME='$CI_REF_NAME', got '$CI_ACTION_REF_NAME'"
+            exit 1
+          fi
+          echo "PASS: CI_ACTION_REF_NAME=$CI_ACTION_REF_NAME"
+      - name: Assert CI_REF_SLUG has no slashes or dots
+        run: |
+          echo "CI_REF_SLUG: $CI_REF_SLUG"
+          if echo "$CI_REF_SLUG" | grep -qE '[/.]'; then
+            echo "FAIL: CI_REF_SLUG should not contain slashes or dots, got '$CI_REF_SLUG'"
+            exit 1
+          fi
+          echo "PASS: CI_REF_SLUG has no slashes or dots"
+      - name: Assert CI_REF_NAME_SLUG has no slashes or dots
+        run: |
+          echo "CI_REF_NAME_SLUG: $CI_REF_NAME_SLUG"
+          if echo "$CI_REF_NAME_SLUG" | grep -qE '[/.]'; then
+            echo "FAIL: CI_REF_NAME_SLUG should not contain slashes or dots, got '$CI_REF_NAME_SLUG'"
+            exit 1
+          fi
+          echo "PASS: CI_REF_NAME_SLUG has no slashes or dots"

@@ -1,0 +1,50 @@
+name: Test SHA environment variables
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+      - name: Assert CI_SHA is a 40-character hex string
+        run: |
+          echo "CI_SHA: $CI_SHA"
+          if [ -z "$CI_SHA" ]; then
+            echo "FAIL: expected CI_SHA to be non-empty"
+            exit 1
+          fi
+          if ! echo "$CI_SHA" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "FAIL: expected CI_SHA to be a 40-char hex string, got '$CI_SHA'"
+            exit 1
+          fi
+          echo "PASS: CI_SHA=$CI_SHA"
+      - name: Assert CI_SHA_SHORT is first 8 chars of CI_SHA
+        run: |
+          echo "CI_SHA: $CI_SHA"
+          echo "CI_SHA_SHORT: $CI_SHA_SHORT"
+          EXPECTED_SHORT="${CI_SHA:0:8}"
+          if [ "$CI_SHA_SHORT" != "$EXPECTED_SHORT" ]; then
+            echo "FAIL: expected CI_SHA_SHORT='$EXPECTED_SHORT', got '$CI_SHA_SHORT'"
+            exit 1
+          fi
+          echo "PASS: CI_SHA_SHORT=$CI_SHA_SHORT"
+      - name: Assert CI_ACTION_SHA matches CI_SHA
+        run: |
+          echo "CI_ACTION_SHA: $CI_ACTION_SHA"
+          echo "CI_SHA: $CI_SHA"
+          if [ "$CI_ACTION_SHA" != "$CI_SHA" ]; then
+            echo "FAIL: expected CI_ACTION_SHA='$CI_SHA', got '$CI_ACTION_SHA'"
+            exit 1
+          fi
+          echo "PASS: CI_ACTION_SHA=$CI_ACTION_SHA"
+      - name: Assert CI_ACTION_SHA_SHORT is first 8 chars of CI_SHA
+        run: |
+          echo "CI_ACTION_SHA_SHORT: $CI_ACTION_SHA_SHORT"
+          EXPECTED_SHORT="${CI_SHA:0:8}"
+          if [ "$CI_ACTION_SHA_SHORT" != "$EXPECTED_SHORT" ]; then
+            echo "FAIL: expected CI_ACTION_SHA_SHORT='$EXPECTED_SHORT', got '$CI_ACTION_SHA_SHORT'"
+            exit 1
+          fi
+          echo "PASS: CI_ACTION_SHA_SHORT=$CI_ACTION_SHA_SHORT"
